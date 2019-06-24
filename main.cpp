@@ -51,7 +51,7 @@ void recvThread(SoapySDR::Device* dev, SoapySDR::Stream* stream, std::vector<cha
 
 int main(int argc, char **argv)
 {
-    /*
+    
     if (argc != 3 && argc != 4) {
         std::cout << "usage: ./Bolt5_Client host port [frequency]" << std::endl;
         return 0;
@@ -59,10 +59,10 @@ int main(int argc, char **argv)
     
     std::string addr = argv[1];
     int port = atoi(argv[2]);
-    */
+    
     std::cout << "Trying to connect..." << std::endl;
-    while (!client.connectToServer("192.168.1.141", 30137)) {
-    //while (!client.connectToServer(addr, port)) {
+
+    while (!client.connectToServer(addr, port)) {
         sleep(1);
     }
     std::cout << "Successfull! :)" << std::endl;
