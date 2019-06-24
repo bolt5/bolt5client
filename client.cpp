@@ -52,6 +52,11 @@ void Client::decimationAndFiltr() {
         
         if (outputStreamBuffer.size() >= FRAMELEN*2) {
             sendBatch(outputStreamBuffer.data(), FRAMELEN*4);
+
+            //memcpy(capture_buffer, outputStreamBuffer.data(), FRAMELEN*4);
+            //this->size = FRAMELEN*4;
+            //sender(0);
+
             outputStreamBuffer.erase(outputStreamBuffer.begin(), outputStreamBuffer.begin() + FRAMELEN*2);
         }
     }
@@ -146,13 +151,13 @@ void Client::sender(int n) {
     
     uint32_t* compressSize = (uint32_t*)ptr;
     ptr += sizeof(uint32_t);
-    
+
     tmpSize = sizeof(buff1);
     compress((Bytef*)(ptr), &tmpSize, buff1, size/2);
     *compressSize = tmpSize;
     totalSize += *compressSize;
     s1ps2 += *compressSize;
-    
+
     ptr += *compressSize;
     compressSize = (uint32_t*)ptr;
     tmpSize = sizeof(buff2);
@@ -175,6 +180,7 @@ void Client::sender(int n) {
     printf("SendStart\n");
     long ret;
     
+    //printf("!%d!\n", socHandle);
     ret = send(socHandle, transmitBuff, totalSize, 0);
   
     transmitData += ret;

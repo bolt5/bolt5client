@@ -84,7 +84,7 @@ private:
     unsigned long size;
     unsigned char buff1[FRAMELEN*4];
     unsigned char buff2[FRAMELEN*4];
-    unsigned char transmitBuff[FRAMELEN*4 + 8];
+    unsigned char transmitBuff[FRAMELEN*8 + 8];
 
     void decimationAndFiltr();
     void sender(int n);
