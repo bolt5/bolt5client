@@ -94,16 +94,33 @@ bool Client::connectToServer(std::string address, int port) {
     }
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-
-    if (connect(socHandle, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        //perror("connect failed. Error");
+    
+    if (int err = connect(socHandle, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        //printf("connect failed. Error %d\n", err);
+        close(socHandle);
         return false;
     }
+    connected = true;
     return true;
 }
 
-void Client::sendBatch(int16_t* alsa_capture_buffer, unsigned long size_b) {
-    memcpy(capture_buffer, alsa_capture_buffer, size_b);
+bool Client::reconnect() {
+    printf("Reconnecting...\n");
+    close(socHandle);
+    socHandle = socket(AF_INET , SOCK_STREAM , 0);
+    int i = 0;
+    
+    while(!connect(socHandle, (struct sockaddr *)&addr, sizeof(addr))) {
+        i++;
+        printf("%d\n",i);
+    }
+    
+    connected = true;
+    return true;
+}
+
+void Client::sendBatch(int16_t* _capture_buffer, unsigned long size_b) {
+    memcpy(capture_buffer, _capture_buffer, size_b);
     this->size = size_b;
 
     if (th[thN] != NULL) {
@@ -129,7 +146,7 @@ void Client::sender(int n) {
     
     uint32_t* compressSize = (uint32_t*)ptr;
     ptr += sizeof(uint32_t);
-    printf("2\n");
+    
     tmpSize = sizeof(buff1);
     compress((Bytef*)(ptr), &tmpSize, buff1, size/2);
     *compressSize = tmpSize;
@@ -153,21 +170,19 @@ void Client::sender(int n) {
     ptr += sizeof(max);
     totalSize += sizeof(max) + sizeof(min);
 
-    
-    //printf("Size = %u\n", s1ps2);
     memcpy(ptr, "FNSH", 4);
     
-    //qDebug() << "size " << totalSize;
-    //unsigned long ret = soc->write((char*)transmitBuff, totalSize);
     printf("SendStart\n");
-    long ret = send(socHandle, transmitBuff, totalSize, 0);
+    long ret;
+    
+    ret = send(socHandle, transmitBuff, totalSize, 0);
   
     transmitData += ret;
 
     if (ret < 0) {
-        printf("Error on transmiting! %d\n", ret);
-        printf("Reconnecting...\n", ret);
-        //reconnect();
+        printf("Error on transmiting!\n");
+        connected = false;
+        
         return;
     }
 

@@ -31,6 +31,9 @@ void recvThread(SoapySDR::Device* dev, SoapySDR::Stream* stream, std::vector<cha
 
     while(!g_exitRecvThread)
     {
+        if (client.connected == false)
+            client.reconnect();
+        
         
         int n_stream_read = dev->readStream(stream, Buffs, numElems, flags, timeNs);
         if(n_stream_read < 0)
@@ -48,7 +51,7 @@ void recvThread(SoapySDR::Device* dev, SoapySDR::Stream* stream, std::vector<cha
 
 int main(int argc, char **argv)
 {
-    
+    /*
     if (argc != 3 && argc != 4) {
         std::cout << "usage: ./Bolt5_Client host port [frequency]" << std::endl;
         return 0;
@@ -56,11 +59,11 @@ int main(int argc, char **argv)
     
     std::string addr = argv[1];
     int port = atoi(argv[2]);
-    
-    std::cout << "Trying to connect..." << std::endl;;
-    if (!client.connectToServer(addr, port)) {
-        std::cout << "unsuccessfull :(" << std::endl;
-        return 0;
+    */
+    std::cout << "Trying to connect..." << std::endl;
+    while (!client.connectToServer("192.168.1.141", 30137)) {
+    //while (!client.connectToServer(addr, port)) {
+        sleep(1);
     }
     std::cout << "Successfull! :)" << std::endl;
     
@@ -173,10 +176,11 @@ int main(int argc, char **argv)
 
                 std::cout << "Starting receiver thread.... " << std::endl;
 
-                std::thread t(recvThread, soapyDev, pStream, &recvBuf, bytes_per_sample);
+                //std::thread t(recvThread, soapyDev, pStream, &recvBuf, bytes_per_sample);
 
                 std::cout << "Press ENTER to exit receiving thread" << std::endl;
-
+                recvThread( soapyDev, pStream, &recvBuf, bytes_per_sample);
+/*
                 int c;
                 do
                 {
@@ -188,7 +192,7 @@ int main(int argc, char **argv)
                 if(t.joinable())
                     t.join();
 
-
+*/
                 soapyDev->closeStream(pStream);
             }
         }

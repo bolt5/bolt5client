@@ -31,9 +31,11 @@
 class Client
 {
 public:
+    bool connected = false;
+    
     Client();
     bool connectToServer(std::string addr, int port);
-    void reconnect();
+    bool reconnect();
     void addToQueue(int16_t* capture_buff, unsigned long size);
     void sendBatch(int16_t* alsa_capture_buffer, unsigned long size);
     void compessBatch(int16_t* alsa_capture_buffer, unsigned long oldSize, unsigned long newSize);
