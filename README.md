@@ -16,7 +16,8 @@ make
 For usage LimeSDR you need to comment line "#define RTLSDR" in main.cpp
 
 ## Run
+```
 ./bolt5client addres pirt [freq]
-
+```
 
 
