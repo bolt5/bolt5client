@@ -8,6 +8,9 @@
 #include <iomanip>
 #include <fstream>
 
+//#define RTLSDR
+
+
 Client client;
 std::ofstream rawFile;
 
@@ -39,7 +42,7 @@ void recvThread(SoapySDR::Device* dev, SoapySDR::Stream* stream, std::vector<cha
         if(n_stream_read < 0)
             std::cout << "Soapy read failed with code: " << n_stream_read << std::endl;
 		else {
-            std::cout << "Read " << n_stream_read << std::endl;
+            //std::cout << "Read " << n_stream_read << std::endl;
             client.addToReadStream(recvBuf->data(), n_stream_read*2);
 		}
 
@@ -73,8 +76,11 @@ int main(int argc, char **argv)
         freq = (double) atoi(argv[3]);
     
     SoapyEnum sdr_enum;
+#ifdef RTLSDR
     std::string sdr_driver("rtlsdr");
-
+#else
+    std::string sdr_driver("lime");
+#endif
     std::vector<SDRDevInfo*>* sdrDevices = sdr_enum.enumerateDevices();
 
     if(sdrDevices != 0) {
@@ -157,12 +163,15 @@ int main(int argc, char **argv)
                 
                 soapyDev->setFrequency(SOAPY_SDR_RX, 0, freq);
                 soapyDev->setSampleRate(SOAPY_SDR_RX, 0, sampleRate);
+
+#ifdef RTLSDR
                 soapyDev->setGain(SOAPY_SDR_RX, 0, 15.0);
                 soapyDev->setGainMode(SOAPY_SDR_RX, 0, true);
                 soapyDev->setDCOffsetMode(SOAPY_SDR_RX, 0, false);
                 soapyDev->writeSetting("digital_agc", "true");
                 soapyDev->writeSetting("direct_samp", "0");
                 soapyDev->writeSetting("offset_tune", "true");
+#endif
                 
                 std::cout << "Gain = " << soapyDev->getGain(SOAPY_SDR_RX, 0) << std::endl;
     
