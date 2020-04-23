@@ -8,7 +8,7 @@
 #include <iomanip>
 #include <fstream>
 
-//#define RTLSDR
+#define RTLSDR
 
 
 Client client;

@@ -106,6 +106,9 @@ bool Client::connectToServer(std::string address, int port) {
         return false;
     }
     connected = true;
+
+    send(socHandle, "RTLSDR", 7, 0);
+
     return true;
 }
 
