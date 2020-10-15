@@ -1,4 +1,4 @@
-# bolt5 could client
+# bolt5 cloud client
 Client for the connection to Bolt5 server.
 ## Dependencies
 - SoapySDR - https://github.com/pothosware/SoapySDR/wiki
