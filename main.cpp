@@ -24,7 +24,8 @@ void recvThread(SoapySDR::Device* dev, SoapySDR::Stream* stream, std::vector<cha
     int numElems = recvBuf->size() / bytes_per_sample;
     void* Buffs[1];
     int flags;
-    long long timeNs;
+    long long maxTimeout = numElems / dev->getSampleRate(SOAPY_SDR_RX, 0) * 1000 * 1000;
+    std::cout << "maxTimeout: " << maxTimeout << std::endl;
     int k = dev->getSampleRate(SOAPY_SDR_RX, 0)/125000.0;
     
     client.setDecimationK(k);
@@ -38,9 +39,10 @@ void recvThread(SoapySDR::Device* dev, SoapySDR::Stream* stream, std::vector<cha
             client.reconnect();
         
         
-        int n_stream_read = dev->readStream(stream, Buffs, numElems, flags, timeNs);
-        if(n_stream_read < 0)
-            std::cout << "Soapy read failed with code: " << n_stream_read << std::endl;
+        int n_stream_read = dev->readStream(stream, Buffs, numElems, flags, maxTimeout);
+        if(n_stream_read < 0) {
+            //std::cout << "Soapy read failed with code: " << n_stream_read << std::endl;
+        }
 		else {
             //std::cout << "Read " << n_stream_read << std::endl;
             client.addToReadStream(recvBuf->data(), n_stream_read*2);
@@ -70,14 +72,13 @@ int main(int argc, char **argv)
     }
     std::cout << "Successfull! :)" << std::endl;
     
-    double freq = 868100000.0;
+    double freq = 868800000.0;
     
     if (argc == 4)
         freq = (double) atoi(argv[3]);
     
     SoapyEnum sdr_enum;
 #ifdef RTLSDR
-    std::string sdr_driver("rtlsdr");
 #else
     std::string sdr_driver("lime");
 #endif
@@ -89,20 +90,19 @@ int main(int argc, char **argv)
 
         std::cout << factories.size() << " devices" << std::endl;
         
-        if(std::find(factories.begin(), factories.end(), sdr_driver) != factories.end())
+        if(true)
         {
-            std::cout << "Found " << sdr_driver << " factory " << std::endl;
+            SDRDevInfo* devInfo;
+            SoapySDR::Device* soapyDev;
 
-            auto result = std::find_if(sdrDevices->begin(), sdrDevices->end(), [sdr_driver](SDRDevInfo* dev_i) { return dev_i->getDriver() == sdr_driver;});
-            if(result == sdrDevices->end())
-                std::cout << "Device " << sdr_driver << " not found " << std::endl;
-            else
-                std::cout << "Device " << sdr_driver << " found! " << std::endl;
+            for (int i=0; i<sdrDevices->size(); i++) {
+                if (sdrDevices->at(i)->getDriver() != "audio") {
+                    devInfo = sdrDevices->at(i);
+                    soapyDev = devInfo->getSoapyDevice();
+                }
 
-            // Make RTL Device
+            }
 
-            SDRDevInfo* devInfo = (*result);
-            SoapySDR::Device* soapyDev = devInfo->getSoapyDevice();
             
             if(soapyDev)
             {
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
                 soapyDev->setSampleRate(SOAPY_SDR_RX, 0, sampleRate);
 
 #ifdef RTLSDR
-                soapyDev->setGain(SOAPY_SDR_RX, 0, 15.0);
+                soapyDev->setGain(SOAPY_SDR_RX, 0, 150.0);
                 soapyDev->setGainMode(SOAPY_SDR_RX, 0, true);
                 soapyDev->setDCOffsetMode(SOAPY_SDR_RX, 0, false);
                 soapyDev->writeSetting("digital_agc", "true");

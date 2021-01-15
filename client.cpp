@@ -53,10 +53,6 @@ void Client::decimationAndFiltr() {
         if (outputStreamBuffer.size() >= FRAMELEN*2) {
             sendBatch(outputStreamBuffer.data(), FRAMELEN*4);
 
-            //memcpy(capture_buffer, outputStreamBuffer.data(), FRAMELEN*4);
-            //this->size = FRAMELEN*4;
-            //sender(0);
-
             outputStreamBuffer.erase(outputStreamBuffer.begin(), outputStreamBuffer.begin() + FRAMELEN*2);
         }
     }
@@ -66,7 +62,7 @@ void Client::decimationAndFiltr() {
 
 void Client::addToQueue(int16_t *capture_buff, unsigned long size) {
     memcpy(queue+queueCounter, capture_buff, size);
-    queueCounter+=size;
+    queueCounter += size;
     
     if (queueCounter >= FRAMELEN) {
         sendBatch(queue, FRAMELEN);
@@ -180,7 +176,7 @@ void Client::sender(int n) {
 
     memcpy(ptr, "FNSH", 4);
     
-    printf("SendStart\n");
+    //printf("SendStart %f %f %d\n", min, max, (ptr-transmitBuff) - sizeof(min)*2);
     long ret;
     
     //printf("!%d!\n", socHandle);
