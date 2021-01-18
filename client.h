@@ -21,8 +21,10 @@
 
 #include <zlib/zlib.h>
 #include "fdacoefs.h"
+#include "GNU_UDP_client.hpp"
 
 #define deflateX2
+//#define UDP_SPEC
 
 #define FRAMELEN 131072
 
@@ -48,9 +50,9 @@ private:
 #ifdef UDP_SPEC
     udp_client* udp;
 #endif
-    
-    float min;
+
     float max;
+    bool sign;
     bool start = true;
     
     std::thread* th[THREADS];

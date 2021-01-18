@@ -100,7 +100,6 @@ int main(int argc, char **argv)
                     devInfo = sdrDevices->at(i);
                     soapyDev = devInfo->getSoapyDevice();
                 }
-
             }
 
             

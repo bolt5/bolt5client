@@ -2,6 +2,10 @@
 
 Client::Client() {
     printf("Client init\n");
+
+#ifdef UDP_SPEC
+    udp = new udp_client("localhost", 1230);
+#endif
 }
 
 void Client::addToReadStream(void* data, uint32_t size) {
@@ -20,7 +24,7 @@ int tmp = 0;
 void Client::decimationAndFiltr() {
     uint32_t inBuffSize = inputStreamBuffer.size();
     int i=0;
-    float mul = 1024.0*16.0 - 1.0;
+    float mul = 1024.0*8.0 - 1.0;
     
     for (; i < inBuffSize-BL*2; i+=decimationK*2) {
         float iC = 0.0;
@@ -32,25 +36,42 @@ void Client::decimationAndFiltr() {
         }
         
         if (start) {
-            min = max = iC;
+            max = iC;
             start = false;
         }
         else {
-            if (iC < min || qC < min)
-                min = std::min(iC, qC);
-            
-            if (iC > max || qC > max)
-                max = std::max(iC, qC);
+            float fi = std::fabs(iC);
+            float fq = std::fabs(qC);
+
+            if (fi > max) {
+                max = fi;
+                sign = iC < 0 ? 1 : 0;
+            }
+
+            if (fq > max) {
+                max = fq;
+                sign = qC < 0 ? 1 : 0;
+            }
         }
-        
+
+#ifdef UDP_SPEC
+        outputStreamBufferUDP.push_back(iC);
+        outputStreamBufferUDP.push_back(qC);
+#endif
+
         iC *= mul/max;
         qC *= mul/max;
+
         
         outputStreamBuffer.push_back((int16_t)iC);
         outputStreamBuffer.push_back((int16_t)qC);
         
-        
         if (outputStreamBuffer.size() >= FRAMELEN*2) {
+#ifdef UDP_SPEC
+            printf("UDP send\n");
+            udp->send((char*)outputStreamBufferUDP.data(), 1024 * 8);
+            outputStreamBufferUDP.clear();
+#endif
             sendBatch(outputStreamBuffer.data(), FRAMELEN*4);
 
             outputStreamBuffer.erase(outputStreamBuffer.begin(), outputStreamBuffer.begin() + FRAMELEN*2);
@@ -168,15 +189,15 @@ void Client::sender(int n) {
     s1ps2 += *compressSize;
     ptr += *compressSize;
     
-    memcpy(ptr, &min, sizeof(min));
-    ptr += sizeof(min);
     memcpy(ptr, &max, sizeof(max));
     ptr += sizeof(max);
-    totalSize += sizeof(max) + sizeof(min);
+    memcpy(ptr, &sign, sizeof(sign));
+    ptr += sizeof(sign);
+    totalSize += sizeof(max) + sizeof(sign);
 
     memcpy(ptr, "FNSH", 4);
     
-    //printf("SendStart %f %f %d\n", min, max, (ptr-transmitBuff) - sizeof(min)*2);
+    printf("SendStart %d %f\n", sign, max);
     long ret;
     
     //printf("!%d!\n", socHandle);

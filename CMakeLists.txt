@@ -19,6 +19,7 @@ set(BOLT_5_SOURCES
     SDRDevInfo.cpp
     client.cpp
     utils.cpp
+    GNU_UDP_client.cpp
 	zlib/adler32.c
 	zlib/compress.c
 	zlib/crc32.c
@@ -42,6 +43,7 @@ set(BOLT_5_HEADERS
     client.h
     utils.h
     fdacoefs.h
+    GNU_UDP_client.hpp
 	zlib/crc32.h
 	zlib/deflate.h
 	zlib/gzguts.h
